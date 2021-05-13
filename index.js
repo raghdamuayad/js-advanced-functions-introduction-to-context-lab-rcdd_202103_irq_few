@@ -1,77 +1,90 @@
 // Your code here
 
-function createEmployeeRecord(arr){
-let obj = {
-firstName: arr[0],
-familyName: arr[1],
-title: arr[2],
-payPerHour: arr[3],
-timeInEvents: [],
-timeOutEvents: []
-}
- return obj
-}
-
-function createEmployees(arryOfArrays) {
-let theArray = []
-arryOfArrays.forEach(element => {
-theArray.push(createEmployeeRecord(element))
- });
-return theArray
+function createEmployeeRecord(ary){
+    let record
+    return record = { 
+    firstName: ary[0],
+    familyName: ary[1],
+    title: ary[2],
+    payPerHour: ary[3],
+    timeInEvents: [], 
+    timeOutEvents: []
+ }
 }
 
-function createTimeInEvent(obj, timeStamp) {
+function createEmployeeRecords(arys){
+return arys.map(createEmployeeRecord)
+}
 
-let hour = parseInt(timeStamp.split(' ')[1])
-let date = timeStamp.split(' ')[0]
-obj.timeInEvents.push({type: "TimeIn", hour: hour, date: date})
+function createDSObj(getType, dateStamp) {
+    return {type: getType, date: dateStamp.slice(0,10), hour: parseInt(dateStamp.slice(-4))}
+}
+
+function createTimeInEvent(obj, dateStamp){
+obj.timeInEvents.push(createDSObj("TimeIn", dateStamp))
 return obj
 }
 
-function createTimeOutEvent(obj, timeStamp) {
- let hour = parseInt(timeStamp.split(' ')[1])
- let date = timeStamp.split(' ')[0]
- obj.timeOutEvents.push({type: "TimeOut", hour: hour, date: date})
- return obj
+
+function createTimeOutEvent(obj, dateStamp){ obj.timeOutEvents.push(createDSObj("TimeOut", dateStamp))
+return obj
 }
 
-function hoursWorkedOnDate(obj, timeStamp){
-let timeIn = obj.timeInEvents.find(x => x.date === timeStamp)
-let timeOut = obj.timeOutEvents.find(x => x.date === timeStamp)
-let result = (timeOut.hour - timeIn.hour) / 100
-    return result
+function hoursWorkedOnDate(obj, dateYMD){
+const timeIn = obj.timeInEvents.find((e) => e.date === dateYMD).hour
+const timeOut = obj.timeOutEvents.find((e) => e.date === dateYMD).hour
+return (timeOut - timeIn)/100
 }
 
-function wagesEarnedOnDate(obj, timeStamp){
-    return hoursWorkedOnDate(obj, timeStamp) * obj.payPerHour
+function wagesEarnedOnDate(obj, dateYMD){
+
+const wage = obj.payPerHour
+const hoursWorked = hoursWorkedOnDate(obj, dateYMD)
+return wage * hoursWorked
 }
 
 function allWagesFor(obj){
- let eligibleDates = obj.timeInEvents.map(function(e){
-  return e.date
-    })
+const allWages = obj.timeInEvents.map((day) => {return wagesEarnedOnDate(obj, day.date)})
+return allWages.reduce((acc, cv) => acc + cv)
+}
 
- let payable = eligibleDates.reduce(function(memo, d){
- return memo + wagesEarnedOnDate(obj, d)
-  }, 0)
+function calculatePayroll(records){
+ const allPay = (records.map((empl) => {return allWagesFor(empl)}))
+ return allPay.reduce((acc, cv) => acc + cv)
+}
 
-    return payable
+function findEmployeeByFirstName(srcArray, first_Name){
+ return srcArray.find((record) => record.firstName === first_Name)
 }
 
 
-function createEmployeeRecords(arryOfArrays) {
- let theArray = []
- arryOfArrays.forEach(element => {
- theArray.push(createEmployeeRecord(element))
-    });
-    return theArray
-}
 
-function findEmployeebyFirstName(srcArray, firstName){
-return srcArray.find(x => {return x.firstName === firstName})
-}
 
-function calculatePayroll(array){
- let sum = array.map((e) => allWagesFor(e))
- return sum.reduce((num, sum) => num + sum)
-}
+  let rRecord = createEmployeeRecord(["Rafiki", "", "Aide", 10])
+  let sRecord = createEmployeeRecord(["Simba", "", "King", 100])
+
+    let sTimeData = [
+   ["2021-05-013 0900", "2019-01-01 1300"], // 4 * 100 = 400
+   ["2021-05-013 1000", "2019-01-02 1300"]  // 3 * 100 = 300 ===> 700 total
+        ]
+
+    let rTimeData = [
+    ["2021-05-13 0900", "2019-01-11 1300"], // 4 * 10 = 40
+    ["2021-05-14 1000", "2019-01-12 1300"]  // 3 * 10 = 40 ===> 70 total ||=> 770
+        ]
+
+  sTimeData.forEach(function (d) {
+      let [dIn, dOut] = d
+      sRecord = createTimeInEvent(sRecord, dIn)
+      sRecord = createTimeOutEvent(sRecord, dOut)
+        })
+
+    rTimeData.forEach(function (d, i) {
+          let [dIn, dOut] = d
+          rRecord = createTimeInEvent(rRecord, dIn)
+          rRecord = createTimeOutEvent(rRecord, dOut)
+        })
+
+        let employees = [sRecord, rRecord]
+
+        calculatePayroll(employees)
